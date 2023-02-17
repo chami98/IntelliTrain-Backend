@@ -41,7 +41,10 @@ app.post('/data', async (req, res) => {
     try {
         const data = req.body;
         const docRef = await db.collection('users').add(data);
-        res.status(201).json({ id: docRef.id });
+        res.status(201).json({
+            "UserID": `${docRef.id}`,
+            "Message": "User Added Successlly"
+        });
     } catch (error) {
         console.log(error);
         res.status(500).send(error);
