@@ -5,7 +5,6 @@ const { getFirestore, Timestamp, FieldValue } = require('firebase-admin/firestor
 const serviceAccount = require('./serviceAccount.json');
 const bodyParser = require('body-parser');
 
-
 initializeApp({
     credential: cert(serviceAccount)
 });
@@ -32,17 +31,30 @@ app.get('/data', async (req, res) => {
 
 app.post('/data', async (req, res) => {
     try {
-        console.log(req.body)
-        // const data = req.body;
-        // const docRef = await db.collection('users').add(data);
-        // res.status(201).json({ id: docRef.id });
+        const data = req.body;
+        const docRef = await db.collection('users').add(data);
+        res.status(201).json({ id: docRef.id });
     } catch (error) {
         console.log(error);
         res.status(500).send(error);
     }
 });
 
-// Start the server
+app.put('/data/:id', async (req, res) => {
+    try {
+        console.log('check');
+        const id = req.params.id;
+        const data = req.body;
+        const docRef = db.collection('users').doc(id);
+        await docRef.set(data, { merge: true });
+        res.status(200).send('Document updated successfully');
+    } catch (error) {
+        console.log(error);
+        res.status(500).send(error);
+    }
+});
+
+
 const port = process.env.PORT || 3000;
 app.listen(port, () => {
     console.log(`Server running on port ${port}`);
