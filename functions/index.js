@@ -37,6 +37,29 @@ app.get('/data', async (req, res) => {
     }
 });
 
+app.get('/data/:email', async (req, res) => {
+    try {
+        const email = req.params.email;
+        console.log(email)
+
+        // get the document from Firestore
+        const snapshot = await db.collection('users').where('email', '==', email).get();
+        if (snapshot.empty) {
+            // return an error if no matching documents are found
+            return res.status(404).send('User not found');
+        }
+
+        // extract the data from the document snapshot
+        const data = snapshot.docs[0].data();
+
+        // return the data as JSON
+        res.json(data);
+    } catch (err) {
+        // return an error if there was a problem fetching the data
+        res.status(500).send(err.message);
+    }
+});
+
 app.post('/data', async (req, res) => {
     try {
         const data = req.body;
@@ -82,6 +105,7 @@ app.post('/signup', async (req, res) => {
                 uid: user.uid,
                 email_verified: user.email_verified,
                 email: user.email,
+                avaliableBalance: 0
             });
             res.status(201).json({
                 "UserID": `${user.uid}`,
