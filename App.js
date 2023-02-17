@@ -1,13 +1,16 @@
 const express = require('express');
 const { initializeApp, applicationDefault, cert } = require('firebase-admin/app');
 const { getFirestore, Timestamp, FieldValue } = require('firebase-admin/firestore');
-
+const admin = require('firebase-admin');
 const serviceAccount = require('./serviceAccount.json');
 const bodyParser = require('body-parser');
 
 initializeApp({
     credential: cert(serviceAccount)
 });
+
+
+
 
 const db = getFirestore();
 // Create a new Express app
@@ -42,7 +45,6 @@ app.post('/data', async (req, res) => {
 
 app.put('/data/:id', async (req, res) => {
     try {
-        console.log('check');
         const id = req.params.id;
         const data = req.body;
         const docRef = db.collection('users').doc(id);
@@ -54,6 +56,35 @@ app.put('/data/:id', async (req, res) => {
     }
 });
 
+app.post('/signup', async (req, res) => {
+    try {
+        // Get user details from the request body
+        const { token } = req.body;
+        const user = await admin.auth().verifyIdToken(token);
+        console.log(user);
+
+        // Check if the user already exists in Firestore
+        const userRef = db.collection('users').doc(user.uid);
+        const snapshot = await userRef.get();
+        if (snapshot.exists) {
+            res.status(409).send('User already exists');
+        } else {
+            // Add user details to Firestore
+            await userRef.set({
+                uid: user.uid,
+                email_verified: user.email_verified,
+                email: user.email,
+            });
+            res.status(201).json({
+                "UserID": `${user.uid}`,
+                "Message": "User Added Successlly"
+            });
+        }
+    } catch (error) {
+        console.log(error);
+        res.status(500).send(error);
+    }
+});
 
 const port = process.env.PORT || 3000;
 app.listen(port, () => {
