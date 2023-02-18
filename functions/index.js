@@ -90,7 +90,14 @@ app.put('/data/:id', async (req, res) => {
 app.post('/signup', async (req, res) => {
     try {
         // Get user details from the request body
+        console.log(req.body);
         const { token } = req.body;
+        const { firstName } = req.body;
+        const { lastName } = req.body;
+        const { phoneNumber } = req.body;
+
+        console.log(firstName, lastName, phoneNumber);
+
         const user = await admin.auth().verifyIdToken(token);
         console.log(user);
 
@@ -103,6 +110,9 @@ app.post('/signup', async (req, res) => {
             // Add user details to Firestore
             await userRef.set({
                 uid: user.uid,
+                firstName: firstName,
+                lastName: lastName,
+                phoneNumber: phoneNumber,
                 email_verified: user.email_verified,
                 email: user.email,
                 avaliableBalance: 0
