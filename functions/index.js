@@ -128,4 +128,32 @@ app.post('/signup', async (req, res) => {
     }
 });
 
+app.put('/wallet', async (req, res) => {
+    try {
+        const { email, topUp } = req.body;
+
+        // Find the user's document in the "users" collection based on their email address
+        const usersRef = admin.firestore().collection('users');
+        const query = usersRef.where('email', '==', email).limit(1);
+        const userDoc = (await query.get()).docs[0];
+
+        if (!userDoc) {
+            res.status(404).send(`No user found with email address ${email}`);
+            return;
+        }
+
+        const avaliableBalance = userDoc.data().avaliableBalance;
+
+        // Update the specified field in the user's document
+        await userDoc.ref.update({
+            avaliableBalance: Number(avaliableBalance + topUp)
+        });
+
+        res.status(200).send(`Successfully updated for user with email ${email}`);
+    } catch (error) {
+        console.error(error);
+        res.status(500).send('An error occurred while updating the avaliableBalance field');
+    }
+});
+
 exports.intelliTrain = functions.https.onRequest(app);
